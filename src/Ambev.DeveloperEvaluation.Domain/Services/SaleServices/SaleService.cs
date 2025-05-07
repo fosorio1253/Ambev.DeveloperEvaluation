@@ -1,4 +1,5 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Entities;
+using Ambev.DeveloperEvaluation.Domain.Enums;
 
 namespace Ambev.DeveloperEvaluation.Domain.Services.SaleServices;
 public class SaleService : ISaleService
@@ -16,7 +17,8 @@ public class SaleService : ISaleService
     public void ValidateSaleItem(Sale sale, SaleItem item)
     {
         var sameProductItems = sale.SaleItems
-            .Where(x => x.ProductId == item.ProductId && !x.IsCancelled)
+            .Where(x => x.ProductId == item.ProductId
+            && x.SaleItemStatus == SaleItemStatus.Active)
             .ToList();
 
         var totalQuantity = sameProductItems.Sum(x => x.Quantity) + item.Quantity;

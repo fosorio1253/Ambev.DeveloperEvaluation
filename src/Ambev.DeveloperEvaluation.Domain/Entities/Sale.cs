@@ -7,7 +7,6 @@ public class Sale : AggregateRoot
 {
     private readonly List<SaleItem> _saleItems = new();
 
-    public Guid Id { get; private set; }
     public string SaleNumber { get; private set; }
     public DateTime SaleDate { get; private set; }
 
@@ -18,7 +17,7 @@ public class Sale : AggregateRoot
     public string BranchName { get; private set; }
 
     public decimal TotalAmount { get; private set; }
-    public SaleStatus IsCancelled { get; private set; }
+    public SaleStatus SaleStatus { get; private set; }
 
     public IReadOnlyCollection<SaleItem> SaleItems => _saleItems.AsReadOnly();
 
@@ -40,7 +39,7 @@ public class Sale : AggregateRoot
         CustomerName = customerName;
         BranchId = branchId;
         BranchName = branchName;
-        IsCancelled = false;
+        SaleStatus = SaleStatus.Active;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = null;
 
@@ -51,7 +50,7 @@ public class Sale : AggregateRoot
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
 
-        if (IsCancelled)
+        if (SaleStatus == SaleStatus.Cancelled)
             throw new DomainException("Cannot add item to a cancelled sale.");
 
         _saleItems.Add(item);
@@ -62,10 +61,10 @@ public class Sale : AggregateRoot
 
     public void Cancel()
     {
-        if (IsCancelled)
+        if (SaleStatus == SaleStatus.Cancelled)
             throw new DomainException("Sale already cancelled.");
 
-        IsCancelled = true;
+        SaleStatus = SaleStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
 
         foreach (var item in _saleItems)
@@ -79,7 +78,7 @@ public class Sale : AggregateRoot
     public void RecalculateTotal()
     {
         TotalAmount = _saleItems
-            .Where(i => !i.IsCancelled)
+            .Where(i => i.SaleItemStatus == SaleItemStatus.Active)
             .Sum(i => i.TotalAmount);
     }
 

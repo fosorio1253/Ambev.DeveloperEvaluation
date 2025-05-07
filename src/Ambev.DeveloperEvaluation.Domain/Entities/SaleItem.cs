@@ -12,7 +12,7 @@ public class SaleItem : AggregateRoot
     public decimal UnitPrice { get; private set; }
     public decimal Discount { get; private set; }
     public decimal TotalAmount => (Quantity * UnitPrice) - Discount;
-    public SaleStatus IsCancelled { get; private set; }
+    public SaleItemStatus SaleItemStatus { get; private set; }
 
     protected SaleItem() { }
 
@@ -37,7 +37,7 @@ public class SaleItem : AggregateRoot
         Quantity = quantity;
         UnitPrice = unitPrice;
         Discount = 0;
-        IsCancelled = false;
+        SaleItemStatus = SaleItemStatus.Active;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = null;
     }
@@ -53,9 +53,9 @@ public class SaleItem : AggregateRoot
 
     public void CancelItem()
     {
-        if (IsCancelled) return;
+        if (SaleItemStatus == SaleItemStatus.Cancelled) return;
 
-        IsCancelled = true;
+        SaleItemStatus = SaleItemStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
         AddDomainEvent(new ItemCancelledEvent(Id));
     }
